@@ -1,62 +1,69 @@
 import React, { Component } from "react";
 import Card from "./components/Card";
 import Wrapper from "./components/Wrapper";
-import Header from "./components/Header";
-import cards from "./cards.json";
+import Points from "./components/Points";
+import images from "./components/cards.json";
 import "./App.css";
 
 class App extends Component {
-  
+
   state = {
-    cards,
-    score: 0,
-    highscore: 0
+    images,
+    clickedId: [],
+    points: 0,
+    goal: 12,
   };
 
-  gameOver = () => {
-    if (this.state.score > this.state.highscore) {
-      this.setState({highscore: this.state.score}, function() {
-        console.log(this.state.highscore);
-      });
+  shuffleCard = id => {
+    let clickedId = this.state.clickedId;
+
+    if (clickedId.includes(id)) {
+      this.setState({ clickedId: [], points: 0});
+
+      return;
+    } else {
+      clickedId.push(id)
+
+      if (clickedId.length === 12) {
+        this.setState({ points: 12, clickedId: [] });
+        return;
+      }
+
+      this.setState({ images, clickedId, points: clickedId.length});
+
+      for (let i = images.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [images[i], images[j]] = [images[j], images[i]];
+      }
     }
-    this.state.cards.forEach(card => {
-      card.count = 0;
-    });
-    alert(`Game Over :( \nscore: ${this.state.score}`);
-    this.setState({score: 0});
-    return true;
   }
 
-  clickCount = id => {
-    this.state.cards.find((o, i) => {
-      if (o.id === id) {
-        if(cards[i].count === 0){
-          cards[i].count = cards[i].count + 1;
-          this.setState({score : this.state.score + 1}, function(){
-            console.log(this.state.score);
-          });
-          this.state.cards.sort(() => Math.random() - 0.5)
-          return true; 
-        } else {
-          this.gameOver();
-        }
-      }
-    });
-  }
-  
   render() {
     return (
-      <Wrapper>
-        <Header score={this.state.score} highscore={this.state.highscore}>Clicky Game</Header>
-        {this.state.cards.map(card => (
-          <Card
-            clickCount={this.clickCount}
-            id={card.id}
-            key={card.id}
-            image={card.image}
-          />
-        ))}
-      </Wrapper>
+      <div className="App">
+        <header className="header">
+          <h1 className="headerTitle">Baseball Memory Game</h1>
+          <p className="headerText">
+            Click on a picture below but do not to click the same picture twice!
+          </p>
+          <Points total={this.state.points}
+          goal={6}
+          status={this.state.status}
+        />
+        </header>
+        
+        <Wrapper>
+          {this.state.images.map(image => (
+            <Card
+              shuffleCard={this.shuffleCard}
+              id={image.id}
+              key={image.id}
+              image={image.image}
+            />
+          ))}
+        </Wrapper>
+
+      </div>
     );
   }
 }
